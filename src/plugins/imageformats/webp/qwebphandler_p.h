@@ -40,17 +40,19 @@
 #ifndef QWEBPHANDLER_P_H
 #define QWEBPHANDLER_P_H
 
+#include <QtGui/qcolor.h>
 #include <QtGui/qimageiohandler.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qsize.h>
 
 #include "webp/decode.h"
+#include "webp/demux.h"
 
 class QWebpHandler : public QImageIOHandler
 {
 public:
     QWebpHandler();
-    ~QWebpHandler() {}
+    ~QWebpHandler();
 
 public:
     QByteArray name() const;
@@ -65,8 +67,17 @@ public:
     void setOption(ImageOption option, const QVariant &value);
     bool supportsOption(ImageOption option) const;
 
+    int imageCount() const;
+    int currentImageNumber() const;
+    QRect currentImageRect() const;
+    bool jumpToImage(int imageNumber);
+    bool jumpToNextImage();
+    int loopCount() const;
+    int nextImageDelay() const;
+
 private:
     bool ensureScanned() const;
+    bool ensureDemuxer();
 
 private:
     enum ScanState {
@@ -79,6 +90,13 @@ private:
     int m_quality;
     mutable ScanState m_scanState;
     WebPBitstreamFeatures m_features;
+    int m_loop;
+    int m_frameCount;
+    QColor m_bgColor;
+    QByteArray m_rawData;
+    WebPData m_webpData;
+    WebPDemuxer *m_demuxer;
+    WebPIterator m_iter;
 };
 
 #endif // WEBPHANDLER_H
