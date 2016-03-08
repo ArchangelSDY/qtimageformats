@@ -121,6 +121,7 @@ void tst_qwebp::readAnimation()
     for (int i = 0; i < reader.imageCount(); ++i) {
         QImage image = reader.read();
         QVERIFY2(!image.isNull(), qPrintable(reader.errorString()));
+        QCOMPARE(image.size(), size);
         QCOMPARE(reader.currentImageNumber(), i);
         QCOMPARE(reader.currentImageRect(), imageRects[i]);
         QCOMPARE(reader.nextImageDelay(), imageDelays[i]);

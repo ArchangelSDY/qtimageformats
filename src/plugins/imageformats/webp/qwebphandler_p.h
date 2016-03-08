@@ -41,6 +41,7 @@
 #define QWEBPHANDLER_P_H
 
 #include <QtGui/qcolor.h>
+#include <QtGui/qimage.h>
 #include <QtGui/qimageiohandler.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qsize.h>
@@ -97,6 +98,7 @@ private:
     WebPData m_webpData;
     WebPDemuxer *m_demuxer;
     WebPIterator m_iter;
+    QImage *m_composited;   // For animation frames composition
 };
 
 #endif // WEBPHANDLER_H

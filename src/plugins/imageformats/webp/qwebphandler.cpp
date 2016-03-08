@@ -42,6 +42,7 @@
 #include <qcolor.h>
 #include <qimage.h>
 #include <qdebug.h>
+#include <qpainter.h>
 #include <qvariant.h>
 
 static const int riffHeaderSize = 12; // RIFF_HEADER_SIZE from webp/format_constants.h
@@ -53,7 +54,8 @@ QWebpHandler::QWebpHandler() :
     m_loop(0),
     m_frameCount(0),
     m_demuxer(NULL),
-    m_iter({})
+    m_iter({}),
+    m_composited(NULL)
 {
 }
 
@@ -61,6 +63,7 @@ QWebpHandler::~QWebpHandler()
 {
     WebPDemuxReleaseIterator(&m_iter);
     WebPDemuxDelete(m_demuxer);
+    delete m_composited;
 }
 
 bool QWebpHandler::canRead() const
@@ -113,6 +116,8 @@ bool QWebpHandler::ensureScanned() const
                 that->m_frameCount = WebPDemuxGetI(m_demuxer, WEBP_FF_FRAME_COUNT);
                 that->m_bgColor = QColor::fromRgba(QRgb(WebPDemuxGetI(m_demuxer, WEBP_FF_BACKGROUND_COLOR)));
 
+                that->m_composited = new QImage(that->m_features.width, that->m_features.height, QImage::Format_ARGB32);
+
                 // We do not reset device position since we have read in all data
                 m_scanState = ScanSuccess;
                 return true;
@@ -163,21 +168,31 @@ bool QWebpHandler::read(QImage *image)
     if (status != VP8_STATUS_OK)
         return false;
 
-    QImage result(features.width, features.height, QImage::Format_ARGB32);
-    uint8_t *output = result.bits();
-    size_t output_size = result.byteCount();
+    QImage frame(m_iter.width, m_iter.height, QImage::Format_ARGB32);
+    uint8_t *output = frame.bits();
+    size_t output_size = frame.byteCount();
 #if Q_BYTE_ORDER == Q_LITTLE_ENDIAN
     if (!WebPDecodeBGRAInto(
         reinterpret_cast<const uint8_t*>(m_iter.fragment.bytes), m_iter.fragment.size,
-        output, output_size, result.bytesPerLine()))
+        output, output_size, frame.bytesPerLine()))
 #else
     if (!WebPDecodeARGBInto(
         reinterpret_cast<const uint8_t*>(m_iter.fragment.bytes), m_iter.fragment.size,
-        output, output_size, result.bytesPerLine()))
+        output, output_size, frame.bytesPerLine()))
 #endif
         return false;
 
-    *image = result;
+    if (!m_features.has_animation) {
+        // Single image
+        *image = frame;
+    } else {
+        // Animation
+        QPainter painter(m_composited);
+        painter.drawImage(currentImageRect(), frame);
+
+        *image = *m_composited;
+    }
+
     return true;
 }
 
