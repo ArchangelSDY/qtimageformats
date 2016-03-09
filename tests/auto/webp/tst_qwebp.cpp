@@ -39,7 +39,6 @@ private slots:
     void readImage();
     void readAnimation_data();
     void readAnimation();
-    void animationJump();
     void writeImage_data();
     void writeImage();
 };
@@ -94,7 +93,7 @@ void tst_qwebp::readAnimation_data()
         << QString("kollada_animation")
         << QSize(536, 260)
         << 2
-        << 3
+        << 2
         << QColor(128, 128, 128, 128)
         << (QList<QRect>() << QRect(0, 0, 436, 160) << QRect(100, 100, 436, 160))
         << (QList<int>() << 1000 << 1200);
@@ -128,28 +127,6 @@ void tst_qwebp::readAnimation()
     }
 
     QVERIFY(reader.read().isNull());
-}
-
-void tst_qwebp::animationJump()
-{
-    const QString path = QStringLiteral(":/images/kollada_animation.webp");
-    QImageReader reader(path);
-
-    QCOMPARE(reader.currentImageNumber(), -1);
-
-    reader.read();
-    QCOMPARE(reader.currentImageNumber(), 0);
-    QCOMPARE(reader.nextImageDelay(), 1000);
-
-    reader.jumpToNextImage();
-    QCOMPARE(reader.currentImageNumber(), 1);
-    QCOMPARE(reader.nextImageDelay(), 1200);
-
-    QCOMPARE(reader.jumpToNextImage(), false);
-
-    reader.jumpToImage(0);
-    QCOMPARE(reader.currentImageNumber(), 0);
-    QCOMPARE(reader.nextImageDelay(), 1000);
 }
 
 void tst_qwebp::writeImage_data()

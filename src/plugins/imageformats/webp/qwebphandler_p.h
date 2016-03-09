@@ -71,8 +71,6 @@ public:
     int imageCount() const;
     int currentImageNumber() const;
     QRect currentImageRect() const;
-    bool jumpToImage(int imageNumber);
-    bool jumpToNextImage();
     int loopCount() const;
     int nextImageDelay() const;
 

@@ -330,29 +330,13 @@ QRect QWebpHandler::currentImageRect() const
     return QRect(m_iter.x_offset, m_iter.y_offset, m_iter.width, m_iter.height);
 }
 
-bool QWebpHandler::jumpToImage(int imageNumber)
-{
-    if (!ensureScanned() || !m_features.has_animation)
-        return false;
-
-    // Frame number in WebP starts from 1
-    return WebPDemuxGetFrame(m_demuxer, imageNumber + 1, &m_iter);
-}
-
-bool QWebpHandler::jumpToNextImage()
-{
-    if (!ensureScanned() || !m_features.has_animation)
-        return false;
-
-    return WebPDemuxNextFrame(&m_iter);
-}
-
 int QWebpHandler::loopCount() const
 {
     if (!ensureScanned() || !m_features.has_animation)
         return 0;
 
-    return m_loop;
+    // Loop count in WebP starts from 0
+    return m_loop - 1;
 }
 
 int QWebpHandler::nextImageDelay() const
